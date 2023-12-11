@@ -40,21 +40,30 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/add", async (req, res) => {
+  const input = req.body["country"];
+
   try {
-    const newCountryCode = req.body.country; // Ambil data negara baru dari formulir
+    const result = await db.query(
+      "SELECT country_code FROM countries WHERE LOWER(country_name) LIKE '%' || $1 || '%';",
+      [input.toLowerCase()]
+    );
 
-    // Periksa apakah negara tersebut sudah ada dalam database
-    const checkCountry = await db.query("SELECT * FROM visited_countries WHERE country_code = $1", [newCountryCode]);
-
-    if (checkCountry.rows.length > 0) {
-      // Negara sudah ada, berikan respon sesuai kebutuhan (misalnya: negara sudah ada dalam database)
-      res.send("Negara sudah ada dalam daftar");
-    } else {
-      // Negara belum ada, tambahkan ke database
-      await db.query("INSERT INTO visited_countries (country_code) VALUES ($1)", [newCountryCode]);
-
-      // Berikan respon sesuai kebutuhan (misalnya: negara berhasil ditambahkan)
+    const data = result.rows[0];
+    const countryCode = data.country_code;
+    try {
+      await db.query(
+        "INSERT INTO visited_countries (country_code) VALUES ($1)",
+        [countryCode]
+      );
       res.redirect("/");
+    } catch (err) {
+      console.log(err);
+      const countries = await checkVisisted();
+      res.render("index.ejs", {
+        countries: countries,
+        total: countries.length,
+        error: "Country has already been added, try again.",
+      });
     }
   } catch (err) {
     console.log(err);
@@ -63,7 +72,8 @@ app.post("/add", async (req, res) => {
       countries: countries,
       total: countries.length,
       error: "Country name does not exist, try again.",
-    })};
+    });
+  }
 });
 
 
