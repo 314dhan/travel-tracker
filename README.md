@@ -18,8 +18,8 @@ Travel Tracker is a travel tracking application that allows users to record thei
     - cd travel-tracker
     - put the visited_countries.csv to your database
     - npm install
-    - npm node index.js
     - write the country you already visited in the form section the form
     - it use database with postgresql
     - create the database name world
     - the table of database in .csv file
+    - npm node index.js
